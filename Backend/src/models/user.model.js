@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt"; // This library is used for hashinf the password
-import { Video } from "./video.model";
+import jwt from "jsonwebtoken";
+import { Video } from "./video.model.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -39,7 +40,7 @@ const userSchema = new mongoose.Schema(
     watchHistory: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: Video,
+        ref: "Video",
       },
     ],
   },
@@ -57,15 +58,15 @@ userSchema.pre("save", async function (next) {
 });
 
 //Here we are creating a method to check whether the given password is correct or not
-userSchema.methods.isPasswordCorrect = async function (passowrd) {
-  return await bcrypt.compare(passowrd, this.passowrd);
+userSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password);
 };
 
 //Generating Access Token
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
-      id: this.id,
+      _id: this._id,
       email: this.email,
       fullname: this.fullname,
     },
@@ -80,7 +81,7 @@ userSchema.methods.generateAccessToken = function () {
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
-      id: this.id,
+      _id: this.id,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {

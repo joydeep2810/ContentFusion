@@ -22,24 +22,29 @@ const registerUser = asyncHandler(async (req, res) => {
       return field?.trim() === "";
     })
   ) {
-    console.log("400 : Field not Found");
-    throw new error();
+    throw console.error("400 : Field not Found");
   }
 
   //Step 3: Check whether the User already present or not
-  const existedUser = User.findOne({ $or: [{ email }, { username }] }); //findone finds in the DB   "$or" this checks eveything the return required fields
+  const existedUser = await User.findOne({ $or: [{ email }, { username }] }); //findone finds in the DB   "$or" this checks eveything the return required fields
   if (existedUser) {
-    console.log("409 : User Already Exist");
-    throw new error();
+    throw console.error("409 : User Already Exist");
   }
 
-  //Step 4: Check for avatar
+  //Step 4: Check for avatar and CoverImage
   const avatarlocalpath = req.files?.avatar[0]?.path; // This is how u get the local path of th image from multer
-  console.log(avatarlocalpath);
-  const coverImagelocalpath = req.files?.coverImage[0]?.path;
+  //For Cover Image
+  let coverImagelocalpath;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImagelocalpath = req.files.coverImage[0].path;
+  }
   //check if present
   if (!avatarlocalpath) {
-    console.log("400 : Avatar not Found");
+    throw console.error("400 : Avatar Not Found");
   }
   // Upload on Cloudinary
   const avatar = await uploadOnCloudinary(avatarlocalpath);
