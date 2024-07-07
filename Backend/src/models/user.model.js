@@ -16,16 +16,18 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    fullName: {
+    fullname: {
       type: String,
       lowercase: true,
       index: true,
+      required: true,
     },
     avatar: {
       type: String, // cloudinary url
+      required: true,
     },
     coverImage: {
-      type: String,
+      type: String, //cloudinary url
     },
     password: {
       type: String,
@@ -38,7 +40,6 @@ const userSchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: Video,
-        required: true,
       },
     ],
   },
@@ -48,7 +49,7 @@ const userSchema = new mongoose.Schema(
 // Here we are encrypting the passowrd before saving it intoo the database with the help of "bcrypt" library and "pre" middleware
 userSchema.pre("save", async function (next) {
   if (this.isModified("password")) {
-    this.password = bcrypt.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, 10);
     next();
   } else {
     return next();
@@ -66,7 +67,7 @@ userSchema.methods.generateAccessToken = function () {
     {
       id: this.id,
       email: this.email,
-      fullName: this.fullName,
+      fullname: this.fullname,
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
